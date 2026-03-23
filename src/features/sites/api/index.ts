@@ -28,7 +28,12 @@ export async function createSite(site: {
     .select()
     .single()
 
-  if (error) throw error
+  if (error) {
+    if (error.code === '23505') {
+      throw new Error('このサイトは既に登録されています')
+    }
+    throw error
+  }
 
   return data as Site
 }
