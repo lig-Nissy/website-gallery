@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createAdminProfile, updateAdminProfile } from '../api'
+import { AvatarUpload } from './AvatarUpload'
 import type { AdminProfile } from '../types'
 
 interface Props {
@@ -127,24 +128,12 @@ export function AdminProfileForm({ profile, onCancel, onSuccess }: Props) {
 
         <div>
           <label className="block text-sm font-medium mb-2 text-zinc-300">
-            アバター画像URL
+            アバター画像
           </label>
-          <input
-            type="url"
-            value={avatarUrl}
-            onChange={(e) => setAvatarUrl(e.target.value)}
-            placeholder="https://example.com/avatar.jpg"
-            className="w-full px-4 py-2 border border-zinc-600 rounded-lg bg-zinc-800 text-zinc-100 placeholder-zinc-500"
+          <AvatarUpload
+            currentUrl={avatarUrl}
+            onUpload={(url) => setAvatarUrl(url)}
           />
-          {avatarUrl && (
-            <div className="mt-2">
-              <img
-                src={avatarUrl}
-                alt="Avatar preview"
-                className="w-20 h-20 rounded-full object-cover"
-              />
-            </div>
-          )}
         </div>
 
         <div>
