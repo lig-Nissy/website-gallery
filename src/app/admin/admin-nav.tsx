@@ -8,6 +8,7 @@ const tabs = [
   { href: '/admin/sites', label: 'サイト一覧' },
   { href: '/admin/categories', label: 'カテゴリ管理' },
   { href: '/admin/tags', label: 'タグ管理' },
+  { href: '/admin/profile', label: '管理者設定' },
 ]
 
 export default function AdminNav() {

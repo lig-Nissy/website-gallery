@@ -16,6 +16,12 @@ export function Footer() {
               このサイトについて
             </Link>
             <Link
+              href="/admin-profile"
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              管理者について
+            </Link>
+            <Link
               href="/privacy"
               className="text-sm text-gray-500 hover:text-gray-700"
             >
