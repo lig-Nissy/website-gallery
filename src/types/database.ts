@@ -17,3 +17,10 @@ export interface Category {
   name: string
   slug: string
 }
+
+export interface Tag {
+  id: string
+  name: string
+  slug: string
+  created_at: string
+}

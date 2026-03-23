@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
+import type { Category, Tag } from '@/types/database'
 
 interface OGPData {
   title: string | null
@@ -10,7 +11,12 @@ interface OGPData {
   siteName: string | null
 }
 
-export default function AdminForm() {
+interface AdminFormProps {
+  categories: Category[]
+  tags: Tag[]
+}
+
+export default function AdminForm({ categories, tags }: AdminFormProps) {
   const [url, setUrl] = useState('')
   const [ogpData, setOgpData] = useState<OGPData | null>(null)
   const [loading, setLoading] = useState(false)
@@ -20,8 +26,8 @@ export default function AdminForm() {
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [category, setCategory] = useState('')
-  const [tags, setTags] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('')
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
 
   const fetchOGP = async () => {
     if (!url) return
@@ -49,6 +55,14 @@ export default function AdminForm() {
     }
   }
 
+  const toggleTag = (tagName: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tagName)
+        ? prev.filter((t) => t !== tagName)
+        : [...prev, tagName]
+    )
+  }
+
   const saveSite = async () => {
     if (!url || !title) {
       setError('URL and title are required')
@@ -66,8 +80,8 @@ export default function AdminForm() {
         title,
         description: description || null,
         og_image_url: ogpData?.ogImage || null,
-        category: category || null,
-        tags: tags ? tags.split(',').map((t) => t.trim()) : null,
+        category: selectedCategory || null,
+        tags: selectedTags.length > 0 ? selectedTags : null,
       })
 
       if (insertError) {
@@ -75,13 +89,12 @@ export default function AdminForm() {
       }
 
       setSuccess(true)
-      // Reset form
       setUrl('')
       setOgpData(null)
       setTitle('')
       setDescription('')
-      setCategory('')
-      setTags('')
+      setSelectedCategory('')
+      setSelectedTags([])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save')
     } finally {
@@ -90,25 +103,25 @@ export default function AdminForm() {
   }
 
   return (
-    <div className="p-8">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-8">Add New Site</h1>
-
+    <div>
+      <div className="max-w-2xl">
         {/* URL Input */}
         <div className="mb-6">
-          <label className="block text-sm font-medium mb-2">Website URL</label>
+          <label className="block text-sm font-medium mb-2 text-zinc-300">
+            Website URL
+          </label>
           <div className="flex gap-2">
             <input
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://example.com"
-              className="flex-1 px-4 py-2 border rounded-lg bg-background"
+              className="flex-1 px-4 py-2 border border-zinc-600 rounded-lg bg-zinc-800 text-zinc-100 placeholder-zinc-500"
             />
             <button
               onClick={fetchOGP}
               disabled={loading || !url}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50"
+              className="px-4 py-2 bg-orange-600 text-white rounded-lg disabled:opacity-50 hover:bg-orange-500"
             >
               {loading ? 'Loading...' : 'Fetch OGP'}
             </button>
@@ -116,21 +129,21 @@ export default function AdminForm() {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg">
+          <div className="mb-6 p-4 bg-red-900/50 text-red-300 rounded-lg border border-red-700">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg">
+          <div className="mb-6 p-4 bg-green-900/50 text-green-300 rounded-lg border border-green-700">
             Site saved successfully!
           </div>
         )}
 
         {/* OGP Preview */}
         {ogpData && (
-          <div className="mb-6 p-4 border rounded-lg">
-            <h2 className="text-lg font-medium mb-4">Preview</h2>
+          <div className="mb-6 p-4 border border-zinc-700 rounded-lg bg-zinc-800">
+            <h2 className="text-lg font-medium mb-4 text-zinc-200">Preview</h2>
             {ogpData.ogImage && (
               <img
                 src={ogpData.ogImage}
@@ -138,7 +151,7 @@ export default function AdminForm() {
                 className="w-full h-48 object-cover rounded-lg mb-4"
               />
             )}
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-zinc-400">
               {ogpData.ogImage ? 'OGP image found' : 'No OGP image found'}
             </p>
           </div>
@@ -148,55 +161,85 @@ export default function AdminForm() {
         {ogpData && (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Title</label>
+              <label className="block text-sm font-medium mb-2 text-zinc-300">
+                Title
+              </label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-4 py-2 border rounded-lg bg-background"
+                className="w-full px-4 py-2 border border-zinc-600 rounded-lg bg-zinc-800 text-zinc-100"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
+              <label className="block text-sm font-medium mb-2 text-zinc-300">
                 Description
               </label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
-                className="w-full px-4 py-2 border rounded-lg bg-background"
+                className="w-full px-4 py-2 border border-zinc-600 rounded-lg bg-zinc-800 text-zinc-100"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Category</label>
-              <input
-                type="text"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g., Portfolio, Blog, E-commerce"
-                className="w-full px-4 py-2 border rounded-lg bg-background"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Tags (comma separated)
+              <label className="block text-sm font-medium mb-2 text-zinc-300">
+                Category
               </label>
-              <input
-                type="text"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                placeholder="e.g., design, minimal, dark-mode"
-                className="w-full px-4 py-2 border rounded-lg bg-background"
-              />
+              {categories.length === 0 ? (
+                <p className="text-sm text-zinc-500">
+                  No categories available. Add some in the Categories tab.
+                </p>
+              ) : (
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full px-4 py-2 border border-zinc-600 rounded-lg bg-zinc-800 text-zinc-100"
+                >
+                  <option value="">Select a category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.name}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2 text-zinc-300">
+                Tags
+              </label>
+              {tags.length === 0 ? (
+                <p className="text-sm text-zinc-500">
+                  No tags available. Add some in the Tags tab.
+                </p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => toggleTag(tag.name)}
+                      className={`px-3 py-1 rounded-full text-sm border transition-colors ${
+                        selectedTags.includes(tag.name)
+                          ? 'bg-orange-600 text-white border-orange-600'
+                          : 'bg-zinc-700 text-zinc-300 border-zinc-600 hover:border-orange-500'
+                      }`}
+                    >
+                      {tag.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <button
               onClick={saveSite}
               disabled={saving}
-              className="w-full px-4 py-3 bg-green-600 text-white rounded-lg disabled:opacity-50"
+              className="w-full px-4 py-3 bg-green-600 text-white rounded-lg disabled:opacity-50 hover:bg-green-500"
             >
               {saving ? 'Saving...' : 'Save Site'}
             </button>
