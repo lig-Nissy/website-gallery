@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import type { Site } from '@/types/database'
 
@@ -14,24 +13,15 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b">
-        <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 py-6">
           <h1 className="text-xl font-bold">Website Gallery</h1>
-          <Link
-            href="/admin"
-            className="px-4 py-2 bg-foreground text-background rounded-lg text-sm"
-          >
-            Add Site
-          </Link>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-8">
         {!sites || sites.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-gray-500 mb-4">No sites added yet.</p>
-            <Link href="/admin" className="text-blue-600 hover:underline">
-              Add your first site
-            </Link>
+            <p className="text-gray-500">No sites added yet.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
