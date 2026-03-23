@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 
 const tabs = [
   { href: '/admin', label: 'サイト追加' },
+  { href: '/admin/sites', label: 'サイト一覧' },
   { href: '/admin/categories', label: 'カテゴリ管理' },
   { href: '/admin/tags', label: 'タグ管理' },
 ]

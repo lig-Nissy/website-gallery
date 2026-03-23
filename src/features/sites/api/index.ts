@@ -37,3 +37,41 @@ export async function createSite(site: {
 
   return data as Site
 }
+
+export async function updateSite(
+  id: string,
+  site: {
+    url?: string
+    title?: string
+    description?: string | null
+    og_image_url?: string | null
+    category?: string | null
+    tags?: string[] | null
+  }
+) {
+  const supabase = createClient()
+
+  const { data, error } = await supabase
+    .from('sites')
+    .update({ ...site, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    if (error.code === '23505') {
+      throw new Error('このURLは既に登録されています')
+    }
+    throw error
+  }
+
+  return data as Site
+}
+
+export async function deleteSite(id: string) {
+  const supabase = createClient()
+
+  const { error } = await supabase.from('sites').delete().eq('id', id)
+
+  if (error) throw error
+}
