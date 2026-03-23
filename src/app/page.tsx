@@ -2,21 +2,25 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import type { Site } from '@/features/sites/types'
 import type { Category } from '@/features/categories/types'
 import type { Tag } from '@/features/tags/types'
-import { SiteCard, GalleryFilters } from '@/features/sites/components'
+import { SiteCard, GalleryFilters, Pagination } from '@/features/sites/components'
 
 export const revalidate = 60
+
+const PER_PAGE = 12
 
 interface Props {
   searchParams: Promise<{
     category?: string
     tag?: string
     q?: string
+    page?: string
   }>
 }
 
 export default async function Home({ searchParams }: Props) {
   const params = await searchParams
-  const { category, tag, q } = params
+  const { category, tag, q, page } = params
+  const currentPage = Math.max(1, parseInt(page || '1', 10))
 
   const supabase = await createServerSupabaseClient()
 
@@ -26,20 +30,36 @@ export default async function Home({ searchParams }: Props) {
     supabase.from('tags').select('*').order('name'),
   ])
 
-  // Build query
+  // Build base query for count
+  let countQuery = supabase.from('sites').select('*', { count: 'exact', head: true })
+
+  if (category) {
+    countQuery = countQuery.eq('category', category)
+  }
+  if (tag) {
+    countQuery = countQuery.contains('tags', [tag])
+  }
+  if (q) {
+    countQuery = countQuery.or(`title.ilike.%${q}%,description.ilike.%${q}%`)
+  }
+
+  const { count } = await countQuery
+  const totalCount = count || 0
+  const totalPages = Math.ceil(totalCount / PER_PAGE)
+
+  // Build query with pagination
   let query = supabase
     .from('sites')
     .select('*')
     .order('created_at', { ascending: false })
+    .range((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE - 1)
 
   if (category) {
     query = query.eq('category', category)
   }
-
   if (tag) {
     query = query.contains('tags', [tag])
   }
-
   if (q) {
     query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`)
   }
@@ -73,12 +93,13 @@ export default async function Home({ searchParams }: Props) {
           </div>
         ) : (
           <>
-            <p className="text-sm text-gray-500 mb-4">{sites.length} sites</p>
+            <p className="text-sm text-gray-500 mb-4">{totalCount} sites</p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {(sites as Site[]).map((site) => (
                 <SiteCard key={site.id} site={site} />
               ))}
             </div>
+            <Pagination currentPage={currentPage} totalPages={totalPages} />
           </>
         )}
       </main>
