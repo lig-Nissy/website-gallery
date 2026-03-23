@@ -12,15 +12,9 @@ export interface Site {
   created_by: string | null
 }
 
-export interface Category {
-  id: string
-  name: string
-  slug: string
-}
-
-export interface Tag {
-  id: string
-  name: string
-  slug: string
-  created_at: string
+export interface OGPData {
+  title: string | null
+  description: string | null
+  ogImage: string | null
+  siteName: string | null
 }

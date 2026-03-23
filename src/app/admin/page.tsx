@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import AdminForm from './admin-form'
-import type { Category, Tag } from '@/types/database'
+import { AdminForm } from '@/features/sites/components'
+import type { Category } from '@/features/categories/types'
+import type { Tag } from '@/features/tags/types'
 
 export default async function AdminPage() {
   const supabase = await createServerSupabaseClient()

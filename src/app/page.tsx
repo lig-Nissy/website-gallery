@@ -1,7 +1,8 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import type { Site, Category, Tag } from '@/types/database'
-import GalleryFilters from './gallery-filters'
-import SiteCard from './site-card'
+import type { Site } from '@/features/sites/types'
+import type { Category } from '@/features/categories/types'
+import type { Tag } from '@/features/tags/types'
+import { SiteCard, GalleryFilters } from '@/features/sites/components'
 
 export const revalidate = 60
 

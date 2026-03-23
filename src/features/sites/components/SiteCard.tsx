@@ -1,10 +1,10 @@
-import type { Site } from '@/types/database'
+import type { Site } from '../types'
 
 interface Props {
   site: Site
 }
 
-export default function SiteCard({ site }: Props) {
+export function SiteCard({ site }: Props) {
   return (
     <a
       href={site.url}

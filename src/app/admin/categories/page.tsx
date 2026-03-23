@@ -1,6 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import CategoriesForm from './categories-form'
-import type { Category } from '@/types/database'
+import { CategoriesForm } from '@/features/categories/components'
+import type { Category } from '@/features/categories/types'
 
 export default async function CategoriesPage() {
   const supabase = await createServerSupabaseClient()

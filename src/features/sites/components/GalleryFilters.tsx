@@ -2,7 +2,8 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useCallback } from 'react'
-import type { Category, Tag } from '@/types/database'
+import type { Category } from '@/features/categories/types'
+import type { Tag } from '@/features/tags/types'
 
 interface Props {
   categories: Category[]
@@ -12,7 +13,7 @@ interface Props {
   currentQuery?: string
 }
 
-export default function GalleryFilters({
+export function GalleryFilters({
   categories,
   tags,
   currentCategory,

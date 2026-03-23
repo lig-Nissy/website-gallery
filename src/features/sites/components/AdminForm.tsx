@@ -1,22 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase'
-import type { Category, Tag } from '@/types/database'
+import { fetchOGP, createSite } from '../api'
+import type { OGPData } from '../types'
+import type { Category } from '@/features/categories/types'
+import type { Tag } from '@/features/tags/types'
 
-interface OGPData {
-  title: string | null
-  description: string | null
-  ogImage: string | null
-  siteName: string | null
-}
-
-interface AdminFormProps {
+interface Props {
   categories: Category[]
   tags: Tag[]
 }
 
-export default function AdminForm({ categories, tags }: AdminFormProps) {
+export function AdminForm({ categories, tags }: Props) {
   const [url, setUrl] = useState('')
   const [ogpData, setOgpData] = useState<OGPData | null>(null)
   const [loading, setLoading] = useState(false)
@@ -29,7 +24,7 @@ export default function AdminForm({ categories, tags }: AdminFormProps) {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
 
-  const fetchOGP = async () => {
+  const handleFetchOGP = async () => {
     if (!url) return
 
     setLoading(true)
@@ -38,13 +33,7 @@ export default function AdminForm({ categories, tags }: AdminFormProps) {
     setSuccess(false)
 
     try {
-      const res = await fetch(`/api/ogp?url=${encodeURIComponent(url)}`)
-      const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to fetch OGP')
-      }
-
+      const data = await fetchOGP(url)
       setOgpData(data)
       setTitle(data.title || '')
       setDescription(data.description || '')
@@ -63,7 +52,7 @@ export default function AdminForm({ categories, tags }: AdminFormProps) {
     )
   }
 
-  const saveSite = async () => {
+  const handleSave = async () => {
     if (!url || !title) {
       setError('URL and title are required')
       return
@@ -73,9 +62,7 @@ export default function AdminForm({ categories, tags }: AdminFormProps) {
     setError(null)
 
     try {
-      const supabase = createClient()
-
-      const { error: insertError } = await supabase.from('sites').insert({
+      await createSite({
         url,
         title,
         description: description || null,
@@ -83,10 +70,6 @@ export default function AdminForm({ categories, tags }: AdminFormProps) {
         category: selectedCategory || null,
         tags: selectedTags.length > 0 ? selectedTags : null,
       })
-
-      if (insertError) {
-        throw insertError
-      }
 
       setSuccess(true)
       setUrl('')
@@ -119,7 +102,7 @@ export default function AdminForm({ categories, tags }: AdminFormProps) {
               className="flex-1 px-4 py-2 border border-zinc-600 rounded-lg bg-zinc-800 text-zinc-100 placeholder-zinc-500"
             />
             <button
-              onClick={fetchOGP}
+              onClick={handleFetchOGP}
               disabled={loading || !url}
               className="px-4 py-2 bg-orange-600 text-white rounded-lg disabled:opacity-50 hover:bg-orange-500"
             >
@@ -237,7 +220,7 @@ export default function AdminForm({ categories, tags }: AdminFormProps) {
             </div>
 
             <button
-              onClick={saveSite}
+              onClick={handleSave}
               disabled={saving}
               className="w-full px-4 py-3 bg-green-600 text-white rounded-lg disabled:opacity-50 hover:bg-green-500"
             >

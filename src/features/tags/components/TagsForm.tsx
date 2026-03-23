@@ -2,17 +2,14 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase'
-import type { Tag } from '@/types/database'
+import { createTag, updateTag, deleteTag } from '../api'
+import type { Tag } from '../types'
 
-function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+interface Props {
+  initialTags: Tag[]
 }
 
-export default function TagsForm({ initialTags }: { initialTags: Tag[] }) {
+export function TagsForm({ initialTags }: Props) {
   const [tags, setTags] = useState<Tag[]>(initialTags)
   const [name, setName] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -28,18 +25,8 @@ export default function TagsForm({ initialTags }: { initialTags: Tag[] }) {
     setError(null)
 
     try {
-      const supabase = createClient()
-      const slug = generateSlug(name)
-
-      const { data, error: insertError } = await supabase
-        .from('tags')
-        .insert({ name: name.trim(), slug })
-        .select()
-        .single()
-
-      if (insertError) throw insertError
-
-      setTags([...tags, data as Tag])
+      const data = await createTag(name)
+      setTags([...tags, data])
       setName('')
       router.refresh()
     } catch (err) {
@@ -56,19 +43,22 @@ export default function TagsForm({ initialTags }: { initialTags: Tag[] }) {
     setError(null)
 
     try {
-      const supabase = createClient()
-      const slug = generateSlug(editName)
-
-      const { error: updateError } = await supabase
-        .from('tags')
-        .update({ name: editName.trim(), slug })
-        .eq('id', id)
-
-      if (updateError) throw updateError
-
+      await updateTag(id, editName)
       setTags(
         tags.map((t) =>
-          t.id === id ? { ...t, name: editName.trim(), slug } : t
+          t.id === id
+            ? {
+                ...t,
+                name: editName.trim(),
+                slug: editName
+                  .toLowerCase()
+                  .replace(
+                    /[^a-z0-9\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]+/g,
+                    '-'
+                  )
+                  .replace(/^-+|-+$/g, ''),
+              }
+            : t
         )
       )
       setEditingId(null)
@@ -88,15 +78,7 @@ export default function TagsForm({ initialTags }: { initialTags: Tag[] }) {
     setError(null)
 
     try {
-      const supabase = createClient()
-
-      const { error: deleteError } = await supabase
-        .from('tags')
-        .delete()
-        .eq('id', id)
-
-      if (deleteError) throw deleteError
-
+      await deleteTag(id)
       setTags(tags.filter((t) => t.id !== id))
       router.refresh()
     } catch (err) {

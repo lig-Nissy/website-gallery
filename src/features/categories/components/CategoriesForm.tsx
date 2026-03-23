@@ -2,21 +2,14 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase'
-import type { Category } from '@/types/database'
+import { createCategory, updateCategory, deleteCategory } from '../api'
+import type { Category } from '../types'
 
-function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+interface Props {
+  initialCategories: Category[]
 }
 
-export default function CategoriesForm({
-  initialCategories,
-}: {
-  initialCategories: Category[]
-}) {
+export function CategoriesForm({ initialCategories }: Props) {
   const [categories, setCategories] = useState<Category[]>(initialCategories)
   const [name, setName] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -32,18 +25,8 @@ export default function CategoriesForm({
     setError(null)
 
     try {
-      const supabase = createClient()
-      const slug = generateSlug(name)
-
-      const { data, error: insertError } = await supabase
-        .from('categories')
-        .insert({ name: name.trim(), slug })
-        .select()
-        .single()
-
-      if (insertError) throw insertError
-
-      setCategories([...categories, data as Category])
+      const data = await createCategory(name)
+      setCategories([...categories, data])
       setName('')
       router.refresh()
     } catch (err) {
@@ -60,19 +43,22 @@ export default function CategoriesForm({
     setError(null)
 
     try {
-      const supabase = createClient()
-      const slug = generateSlug(editName)
-
-      const { error: updateError } = await supabase
-        .from('categories')
-        .update({ name: editName.trim(), slug })
-        .eq('id', id)
-
-      if (updateError) throw updateError
-
+      await updateCategory(id, editName)
       setCategories(
         categories.map((c) =>
-          c.id === id ? { ...c, name: editName.trim(), slug } : c
+          c.id === id
+            ? {
+                ...c,
+                name: editName.trim(),
+                slug: editName
+                  .toLowerCase()
+                  .replace(
+                    /[^a-z0-9\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]+/g,
+                    '-'
+                  )
+                  .replace(/^-+|-+$/g, ''),
+              }
+            : c
         )
       )
       setEditingId(null)
@@ -92,15 +78,7 @@ export default function CategoriesForm({
     setError(null)
 
     try {
-      const supabase = createClient()
-
-      const { error: deleteError } = await supabase
-        .from('categories')
-        .delete()
-        .eq('id', id)
-
-      if (deleteError) throw deleteError
-
+      await deleteCategory(id)
       setCategories(categories.filter((c) => c.id !== id))
       router.refresh()
     } catch (err) {
